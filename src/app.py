@@ -8,6 +8,7 @@ for extracurricular activities at Mergington High School.
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import RedirectResponse
+from fastapi import Query
 import os
 from pathlib import Path
 
@@ -86,6 +87,24 @@ def root():
 @app.get("/activities")
 def get_activities():
     return activities
+
+
+@app.get("/activities/search")
+def search_activities(q: str = Query("", alias="q")):
+    """Search activities by name, description, or schedule using query param `q`."""
+    if not q:
+        return activities
+
+    q_lower = q.lower()
+    results = {}
+    for name, details in activities.items():
+        if (
+            q_lower in name.lower()
+            or q_lower in details.get("description", "").lower()
+            or q_lower in details.get("schedule", "").lower()
+        ):
+            results[name] = details
+    return results
 
 
 @app.post("/activities/{activity_name}/signup")
